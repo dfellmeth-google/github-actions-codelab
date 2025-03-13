@@ -17,11 +17,11 @@ syntax = "proto3";
 
 package sapagent.protos.metrics;
 
-import "net/proto2/proto/descriptor.proto";
+import "google/protobuf/descriptor.proto";
 
-option go_package = "./metrics";
+option go_package = "github.com/GoogleCloudPlatform/sapagent/protos/metrics";
 
-extend proto2.EnumValueOptions {
+extend google.protobuf.EnumValueOptions {
   string xml_name = 460533978;
 }
 

@@ -18,9 +18,8 @@ syntax = "proto3";
 package sapagent.protos.hanainsights;
 
 option java_multiple_files = true;
-option go_package = "./hanainsights";
+option go_package = "github.com/GoogleCloudPlatform/sapagent/protos/hanainsights";
 
-// LINT.IfChange
 message Rule {
   string name = 1;  // Optional
   string id =
@@ -75,5 +74,5 @@ message Action {
   string description = 2;
   string statement = 3;
   string rollback = 4;
-  // LINT.ThenChange(//depot/google3/cloud/partners/sap/sapagent/script/hanainsights/preprocessor/generate_go_from_rule_json.go)
+  
 }
