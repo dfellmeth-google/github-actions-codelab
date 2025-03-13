@@ -1,0 +1,77 @@
+
+# This workflow will build all of the protos and commit them to the repo.
+# This will pull the current workloadagentplatform submodule so the shared protos can be imported.
+
+name: go-build-protos
+
+on:
+  push:
+    branches: [ "lint-workflow" ]
+    paths:
+      - 'protos/**.proto'
+
+jobs:
+  build-protos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+# LINT.IfChange
+        go-version: '1.23.2'
+# LINT.ThenChange(
+#  //depot/google3/third_party/sapagent/.github/workflows/go-build-and-test.yml,
+#  //depot/google3/third_party/sapagent/build.sh,
+#  //depot/google3/third_party/sapagent/go.mod
+# )
+
+    - name: Add workloadagentplatform submodule
+      run: |
+        git submodule add https://github.com/GoogleCloudPlatform/workloadagentplatform
+        cd workloadagentplatform
+# LINT.IfChange
+        # this is the hash of the workloadagentplatform submodule
+        # get the hash by running: go list -m -json github.com/GoogleCloudPlatform/workloadagentplatform@main
+        git checkout 8bfff4f19e2f2e6152d291ff2963438fe08cb692
+# LINT.ThenChange(
+#  //depot/google3/third_party/sapagent/.github/workflows/go-build-and-test.yml,
+#  //depot/google3/third_party/sapagent/build.sh,
+#  //depot/google3/third_party/sapagent/go.mod
+# )
+        cd ..
+        find workloadagentplatform/sharedprotos -type f -exec sed -i 's|"sharedprotos|"workloadagentplatform/sharedprotos|g' {} +
+
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v3
+
+    - name: Install protoc-gen-go
+      run: |
+        go install github.com/golang/protobuf/protoc-gen-go@latest
+        go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+    - name: Compile protocol buffers
+      run: |
+        export PATH=${PATH}:`go env GOPATH`/bin
+        protoc --go_opt=paths=source_relative protos/**/*.proto --go_out=.
+
+    - name: Commit the compiled protos
+      run: |
+        git rm -f workloadagentplatform
+        git config --global user.name 'Git bot'
+        git config --global user.email 'bot@noreply.github.com'
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        git add protos
+        git commit -m "Auto updated compiled protocol buffers" && git push || echo "No changes to commit"
+
+    - name: Notify on failure
+      if: ${{ failure() }}
+      uses: cinotify/github-action@main
+      with:
+        to: 'sapagent-github-dev@google.com'
+        subject: '[Failure] GitHub Agent for SAP Protocol Buffer Build and Commit failed'
+        body: 'There was a failure for the GitHub Agent for SAP workflow go-build-protos action.\n\n https://github.com/GoogleCloudPlatform/sapagent/actions/runs/${{ github.run_id }}'
+
