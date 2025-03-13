@@ -1,0 +1,245 @@
+/*
+Copyright 2022 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package sapagent.protos.configuration;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/wrappers.proto";
+import "storage/datapol/annotations/proto/semantic_annotations.proto";
+import "third_party/sapagent/protos/instanceinfo/instanceinfo.proto";
+
+option go_package = "./configuration";
+
+// LINT.IfChange
+message Configuration {
+  enum LogLevel {
+    UNDEFINED = 0;
+    DEBUG = 1;
+    INFO = 2;
+    WARNING = 3;
+    ERROR = 4;
+  }
+
+  google.protobuf.BoolValue provide_sap_host_agent_metrics = 1;
+  bool bare_metal = 2;
+  string service_endpoint_override = 3;
+  LogLevel log_level = 4;
+  CollectionConfiguration collection_configuration = 5;
+  instanceinfo.CloudProperties cloud_properties = 6;
+  AgentProperties agent_properties = 7;
+  HANAMonitoringConfiguration hana_monitoring_configuration = 8;
+  google.protobuf.BoolValue log_to_cloud = 9;
+  DiscoveryConfiguration discovery_configuration = 10;
+  SupportConfiguration support_configuration = 11;
+  UAPConfiguration uap_configuration = 12;
+  GCBDRConfiguration gcbdr_configuration = 13;
+}
+
+message CollectionConfiguration {
+  google.protobuf.BoolValue collect_workload_validation_metrics = 1;
+  int64 workload_validation_metrics_frequency = 2;
+  bool collect_process_metrics = 3;
+  int64 process_metrics_frequency = 4;
+  int64 process_metrics_send_frequency = 5 [deprecated = true];
+  WorkloadValidationRemoteCollection workload_validation_remote_collection = 6;
+  bool collect_experimental_metrics = 7;
+  HANAMetricsConfig hana_metrics_config =
+      8;  // HANA DB user credentials for process metrics
+  google.protobuf.BoolValue sap_system_discovery = 9 [deprecated = true];
+  bool collect_agent_metrics = 10;
+  int64 agent_metrics_frequency = 11;
+  int64 heartbeat_frequency = 12;
+  int64 missed_heartbeat_threshold = 13;
+  int64 agent_health_frequency = 14;
+  int64 workload_validation_db_metrics_frequency = 15;
+  HANAMetricsConfig workload_validation_db_metrics_config =
+      16;  // HANA DB user credentials for WLM DB based metrics
+  string data_warehouse_endpoint = 17;
+  int64 slow_process_metrics_frequency = 18;
+  repeated string process_metrics_to_skip =
+      19;  // List of process metrics to skip during metrics collection
+           // Ex: ["/sap/nw/abap/sessions", "/sap/nw/abap/rfc"].
+  WorkloadValidationCollectionDefinition
+      workload_validation_collection_definition = 20;
+  google.protobuf.BoolValue collect_reliability_metrics = 21
+      [deprecated = true];
+  int64 reliability_metrics_frequency = 22 [deprecated = true];
+  int64 metric_events_log_delay_seconds = 23;
+}
+
+// LINT.ThenChange(//depot/google3/third_party/sapagent/build/configuration.json,
+// //depot/google3/third_party/sapagent/internal/onetime/configure/configure.go)
+
+message AgentProperties {
+  string version = 1;
+  string name = 2;
+  bool log_usage_metrics = 3;
+}
+
+message WorkloadValidationRemoteCollection {
+  string remote_collection_binary = 1;
+  int64 concurrent_collections = 2;
+  RemoteCollectionGcloud remote_collection_gcloud = 3;
+  RemoteCollectionSsh remote_collection_ssh = 4;
+  repeated RemoteCollectionInstance remote_collection_instances = 5;
+}
+
+message RemoteCollectionInstance {
+  string project_id = 1;
+  string zone = 2;
+  string instance_id = 3;
+  string instance_name = 4;
+  string ssh_host_address = 5;
+}
+
+message RemoteCollectionGcloud {
+  // user that will be used when issue gcloud ssh commands, if omitted then the
+  // owner of the systemd service is used, usually root
+  string ssh_username = 1;
+  bool use_internal_ip = 2;
+  bool tunnel_through_iap = 3;
+  string gcloud_args = 4;
+}
+
+message RemoteCollectionSsh {
+  string ssh_username = 1;
+  string ssh_private_key_path = 2;
+}
+
+message WorkloadValidationCollectionDefinition {
+  reserved 2;
+  reserved "disable_fetch_latest_config";
+
+  TargetEnvironment config_target_environment = 1;
+  google.protobuf.BoolValue fetch_latest_config = 3;
+}
+
+message HANAMetricsConfig {
+  string hana_db_user = 1;
+  string hana_db_password = 2;
+  string hana_db_password_secret_name = 3;
+  string hostname = 4;
+  string port = 5;
+  string hdbuserstore_key = 6;
+  string sid = 7;
+}
+
+message HANAMonitoringConfiguration {
+  int64 sample_interval_sec = 1;
+  int64 query_timeout_sec = 2;
+  int64 execution_threads = 3;
+  repeated HANAInstance hana_instances = 4;
+  repeated Query queries = 5;
+  bool enabled = 6;
+  bool send_query_response_time = 7;
+  // If provided, a connection will try to be established to the HANA database
+  // before starting the queries.
+  google.protobuf.Duration connection_timeout = 8;
+  google.protobuf.Int32Value max_connect_retries = 9;
+}
+
+message HANAInstance {
+  string name = 1;
+  string sid = 2;
+  string host = 3;
+  string port = 4;
+  string user = 5;
+  string password = 6 [(datapol.semantic_type) = ST_ACCOUNT_CREDENTIAL];
+  string secret_name = 7;
+  bool enable_ssl = 8;
+  string host_name_in_certificate = 9;
+  string tls_root_ca_file = 10;
+  string hdbuserstore_key = 11;
+  QueriesToRun queries_to_run = 12;
+  bool is_local = 13;
+  string instance_num = 14;
+}
+
+message QueriesToRun {
+  bool run_all = 1;
+  repeated string query_names = 2;
+}
+
+message Query {
+  bool enabled = 1;
+  string name = 2;
+  string sql = 3;
+  int64 sample_interval_sec = 4;
+  repeated Column columns = 5;
+  RunOn run_on = 6;
+}
+
+enum RunOn {
+  RUN_ON_UNSPECIFIED = 0;
+  PRIMARY = 1;
+  SECONDARY = 2;
+  ALL = 3;
+}
+
+message Column {
+  string name = 1;
+  MetricType metric_type = 2;
+  ValueType value_type = 3;
+  string name_override = 4;
+}
+
+enum MetricType {
+  METRIC_UNSPECIFIED = 0;
+  METRIC_LABEL = 1;
+  METRIC_GAUGE = 2;
+  METRIC_CUMULATIVE = 3;
+}
+
+enum ValueType {
+  VALUE_UNSPECIFIED = 0;
+  VALUE_BOOL = 1;
+  VALUE_INT64 = 2;
+  VALUE_STRING = 3;
+  VALUE_DOUBLE = 4;
+}
+
+enum TargetEnvironment {
+  TARGET_ENVIRONMENT_UNSPECIFIED = 0;
+  PRODUCTION = 1;
+  STAGING = 2;
+  DEVELOPMENT = 3;
+  INTEGRATION = 4;
+  AUTOPUSH = 5;
+}
+
+message DiscoveryConfiguration {
+  google.protobuf.BoolValue enable_discovery = 1;
+  google.protobuf.Duration system_discovery_update_frequency = 2;
+  google.protobuf.Duration sap_instances_update_frequency = 3;
+  google.protobuf.BoolValue enable_workload_discovery = 4;
+}
+
+message SupportConfiguration {
+  google.protobuf.BoolValue
+      send_workload_validation_metrics_to_cloud_monitoring = 1;
+}
+
+message UAPConfiguration {
+  google.protobuf.BoolValue enabled = 1;
+  google.protobuf.BoolValue test_channel_enabled = 2;
+}
+
+message GCBDRConfiguration {
+  google.protobuf.BoolValue communication_enabled = 1;
+  google.protobuf.BoolValue test_channel_enabled = 2;
+  TargetEnvironment environment = 3;
+}

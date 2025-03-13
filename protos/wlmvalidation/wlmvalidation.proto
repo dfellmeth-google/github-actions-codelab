@@ -1,0 +1,318 @@
+/*
+Copyright 2023 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package sapagent.protos.wlmvalidation;
+
+import "third_party/workloadagentplatform/sharedprotos/configurablemetrics/configurablemetrics.proto";
+
+option go_package = "./wlmvalidation";
+
+enum SapValidationType {
+  SAP_VALIDATION_TYPE_UNSPECIFIED = 0;
+  SYSTEM = 1;
+  COROSYNC = 2;
+  HANA = 3;
+  NETWEAVER = 4;
+  PACEMAKER = 5;
+  CUSTOM = 6;
+}
+
+enum SystemVariable {
+  SYSTEM_VARIABLE_UNSPECIFIED = 0;
+  INSTANCE_NAME = 1;
+  OS_NAME_VERSION = 2;
+  AGENT_NAME = 3;
+  AGENT_VERSION = 4;
+  NETWORK_IPS = 5;
+  COLLECTION_CONFIG_VERSION = 6;
+  OS_SETTINGS = 7;
+}
+
+enum DiskVariable {
+  DISK_VARIABLE_UNSPECIFIED = 0;
+  TYPE = 1;
+  MOUNT = 2;
+  SIZE = 3;
+  PD_SIZE = 4;
+  BLOCK_DEVICE = 5;
+}
+
+enum HANABackupVariable {
+  HANA_BACKUP_VARIABLE_UNSPECIFIED = 0;
+  TENANT_NAME = 1;
+  LAST_BACKUP_TIMESTAMP = 2;
+  DELTA_TENANT_NAME = 3;
+  LAST_DELTA_BACKUP_TIMESTAMP = 4;
+  SNAPSHOT_TENANT_NAME = 5;
+  LAST_SNAPSHOT_BACKUP_TIMESTAMP = 6;
+}
+
+enum HANAHighAvailabilityVariable {
+  HA_VARIABLE_UNSPECIFIED = 0;
+  HA_IN_SAME_ZONE = 1;
+}
+
+enum PrimitiveVariable {
+  PRIMITIVE_VARIABLE_UNSPECIFIED = 0;
+  PCMK_DELAY_BASE = 1;
+  PCMK_DELAY_MAX = 2;
+  PCMK_MONITOR_RETRIES = 3;
+  PCMK_REBOOT_TIMEOUT = 4;
+  SAPHANA_NOTIFY = 5;
+  SAPHANA_CLONE_MAX = 6;
+  SAPHANA_CLONE_NODE_MAX = 7;
+  SAPHANA_INTERLEAVE = 8;
+  SAPHANATOPOLOGY_CLONE_NODE_MAX = 9;
+  SAPHANATOPOLOGY_INTERLEAVE = 10;
+  SAPHANA_AUTOMATED_REGISTER = 11;
+  SAPHANA_DUPLICATE_PRIMARY_TIMEOUT = 12;
+  SAPHANA_PREFER_SITE_TAKEOVER = 13;
+  HEALTHCHECK_MONITOR_INTERVAL = 14;
+  HEALTHCHECK_MONITOR_TIMEOUT = 15;
+  ILB_MONITOR_INTERVAL = 16;
+  ILB_MONITOR_TIMEOUT = 17;
+  HAS_ALIAS_IP = 18;
+}
+
+enum RSCLocationVariable {
+  RSC_LOCATION_VARIABLE_UNSPECIFIED = 0;
+  LOCATION_PREFERENCE_SET = 1;
+}
+
+enum RSCOptionVariable {
+  RSC_OPTION_VARIABLE_UNSPECIFIED = 0;
+  MIGRATION_THRESHOLD = 1;
+  RESOURCE_STICKINESS = 2;
+}
+
+enum HANAOperationVariable {
+  HANA_OPERATION_VARIABLE_UNSPECIFIED = 0;
+  SAPHANA_START_TIMEOUT = 1;
+  SAPHANA_STOP_TIMEOUT = 2;
+  SAPHANA_PROMOTE_TIMEOUT = 3;
+  SAPHANA_DEMOTE_TIMEOUT = 4;
+  SAPHANATOPOLOGY_MONITOR_INTERVAL = 5;
+  SAPHANATOPOLOGY_MONITOR_TIMEOUT = 6;
+  SAPHANATOPOLOGY_START_TIMEOUT = 7;
+  SAPHANATOPOLOGY_STOP_TIMEOUT = 8;
+  SAPHANA_PRIMARY_MONITOR_INTERVAL = 9;
+  SAPHANA_PRIMARY_MONITOR_TIMEOUT = 10;
+  SAPHANA_SECONDARY_MONITOR_INTERVAL = 11;
+  SAPHANA_SECONDARY_MONITOR_TIMEOUT = 12;
+}
+
+enum FenceAgentVariable {
+  FENCE_AGENT_VARIABLE_UNSPECIFIED = 0;
+  FENCE_AGENT = 1;
+  COMPUTE_API_ACCESS = 2;
+  LOGGING_API_ACCESS = 3;
+}
+
+enum ASCSVariable {
+  ASCS_VARIABLE_UNSPECIFIED = 0;
+  ASCS_FAILURE_TIMEOUT = 1;
+  ASCS_MIGRATION_THRESHOLD = 2;
+  ASCS_RESOURCE_STICKINESS = 3;
+  ASCS_INSTANCE = 4;
+  ENQUEUE_SERVER = 5;
+  ERS_INSTANCE = 6;
+  IS_ERS = 7;
+  ASCS_AUTOMATIC_RECOVER = 8;
+  ASCS_MONITOR_INTERVAL = 9;
+  ASCS_MONITOR_TIMEOUT = 10;
+  ERS_AUTOMATIC_RECOVER = 11;
+  ERS_MONITOR_INTERVAL = 12;
+  ERS_MONITOR_TIMEOUT = 13;
+  ASCS_HEALTHCHECK_MONITOR_INTERVAL = 14;
+  ASCS_HEALTHCHECK_MONITOR_TIMEOUT = 15;
+  ASCS_ILB_MONITOR_INTERVAL = 16;
+  ASCS_ILB_MONITOR_TIMEOUT = 17;
+  ERS_HEALTHCHECK_MONITOR_INTERVAL = 18;
+  ERS_HEALTHCHECK_MONITOR_TIMEOUT = 19;
+  ERS_ILB_MONITOR_INTERVAL = 20;
+  ERS_ILB_MONITOR_TIMEOUT = 21;
+}
+
+enum CIBBootstrapOptionVariable {
+  CIB_BOOTSTRAP_OPTION_VARIABLE_UNSPECIFIED = 0;
+  MAINTENANCE_MODE_ACTIVE = 1;
+  STONITH_ENABLED = 2;
+  STONITH_TIMEOUT = 3;
+}
+
+enum OPOptionVariable {
+  OP_OPTION_VARIABLE_UNSPECIFIED = 0;
+  OP_TIMEOUT = 1;
+}
+
+enum HANADiskVolumeMetricSource {
+  HANA_DISK_VOLUME_METRIC_SOURCE_UNSPECIFIED = 0;
+  GLOBAL_INI = 1;
+  HDB_INDEXSERVER_PATH = 2;
+  DIR_INSTANCE_ENV = 3;
+}
+
+message WorkloadValidation {
+  ValidationSystem validation_system = 1;
+  ValidationCorosync validation_corosync = 2;
+  ValidationHANA validation_hana = 3;
+  ValidationNetweaver validation_netweaver = 4;
+  ValidationPacemaker validation_pacemaker = 5;
+  ValidationCustom validation_custom = 6;
+  // Track the version of the workload validation config distributed for the
+  // Agent for SAP by the SAP Core Eng team. This field is intended for logging
+  // and debugging purposes only, and will be ignored if set in a customer
+  // defined collection definition config.
+  int64 version = 7;
+}
+
+message ValidationSystem {
+  repeated SystemMetric system_metrics = 1;
+  repeated
+      workloadagentplatform.sharedprotos.configurablemetrics.OSCommandMetric
+          os_command_metrics = 2;
+}
+
+message SystemMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  SystemVariable value = 2;
+}
+
+message ValidationCorosync {
+  string config_path = 1;
+  repeated workloadagentplatform.sharedprotos.configurablemetrics.EvalMetric
+      config_metrics = 2;
+  repeated
+      workloadagentplatform.sharedprotos.configurablemetrics.OSCommandMetric
+          os_command_metrics = 3;
+}
+
+message ValidationHANA {
+  repeated workloadagentplatform.sharedprotos.configurablemetrics.EvalMetric
+      global_ini_metrics = 1;
+  repeated HANADiskVolumeMetric hana_disk_volume_metrics = 2;
+  repeated
+      workloadagentplatform.sharedprotos.configurablemetrics.OSCommandMetric
+          os_command_metrics = 3;
+  repeated HANAHighAvailabilityMetric ha_metrics = 4;
+  repeated workloadagentplatform.sharedprotos.configurablemetrics.EvalMetric
+      indexserver_ini_metrics = 5;
+  repeated HANABackupMetric hana_backup_metrics = 6;
+}
+
+message HANADiskVolumeMetric {
+  string basepath_volume = 1;
+  repeated HANADiskMetric metrics = 2;
+  HANADiskVolumeMetricSource metric_source = 3;
+}
+
+message HANADiskMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  DiskVariable value = 2;
+}
+
+message HANAHighAvailabilityMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  HANAHighAvailabilityVariable value = 2;
+}
+
+message HANABackupMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  HANABackupVariable value = 2;
+}
+
+message ValidationNetweaver {
+  repeated
+      workloadagentplatform.sharedprotos.configurablemetrics.OSCommandMetric
+          os_command_metrics = 1;
+}
+
+message ValidationPacemaker {
+  PacemakerConfigMetrics config_metrics = 1;
+  repeated CIBBootstrapOptionMetric cib_bootstrap_option_metrics = 2;
+  repeated
+      workloadagentplatform.sharedprotos.configurablemetrics.OSCommandMetric
+          os_command_metrics = 3;
+}
+
+message PacemakerConfigMetrics {
+  repeated PacemakerPrimitiveMetric primitive_metrics = 1;
+  repeated PacemakerRSCLocationMetric rsc_location_metrics = 2;
+  repeated PacemakerRSCOptionMetric rsc_option_metrics = 3;
+  repeated PacemakerHANAOperationMetric hana_operation_metrics = 4;
+  repeated PacemakerFenceAgentMetric fence_agent_metrics = 5;
+  repeated PacemakerASCSMetric ascs_metrics = 6;
+  repeated OPOptionMetric op_option_metrics = 7;
+}
+
+message PacemakerPrimitiveMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  PrimitiveVariable value = 2;
+}
+
+message PacemakerRSCLocationMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  RSCLocationVariable value = 2;
+}
+
+message PacemakerRSCOptionMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  RSCOptionVariable value = 2;
+}
+
+message PacemakerHANAOperationMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  HANAOperationVariable value = 2;
+}
+
+message PacemakerFenceAgentMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  FenceAgentVariable value = 2;
+}
+
+message PacemakerASCSMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  ASCSVariable value = 2;
+}
+
+message CIBBootstrapOptionMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  CIBBootstrapOptionVariable value = 2;
+}
+
+message OPOptionMetric {
+  workloadagentplatform.sharedprotos.configurablemetrics.MetricInfo
+      metric_info = 1;
+  OPOptionVariable value = 2;
+}
+
+message ValidationCustom {
+  repeated
+      workloadagentplatform.sharedprotos.configurablemetrics.OSCommandMetric
+          os_command_metrics = 1;
+}

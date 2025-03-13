@@ -1,0 +1,79 @@
+/*
+Copyright 2023 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package sapagent.protos.hanainsights;
+
+option java_multiple_files = true;
+option go_package = "./hanainsights";
+
+// LINT.IfChange
+message Rule {
+  string name = 1;  // Optional
+  string id =
+      2;  // Required: Unique ID of the rule - must be unique across all rules.
+  repeated string labels = 3;  // Security, High Availability, performance,
+                               // cost-saving, supportability, reliability, etc.
+  string description = 4;
+  repeated Query queries = 5;
+  repeated Recommendation recommendations = 6;
+}
+
+message Query {
+  string name =
+      1;  //  Required: Unique within this rule and global knowledgebase.
+  string description = 2;
+  repeated string dependent_on_queries =
+      3;           // names of the queries that must be run prior to this.
+  string sql = 4;  // SQL query
+  repeated string columns = 5;  // Required: Used to build knowledgebase
+}
+
+message Recommendation {
+  string name = 1;  // Optional
+  string id = 2;    // Required: used to uniquely identify a recoomendation.
+  string description = 3;  // Optional
+  EvalNode trigger = 4;
+  repeated Action actions = 5;
+  bool force_trigger = 6;          // Optional - for internal testing
+  repeated string references = 7;  // Optional
+}
+
+message EvalNode {
+  enum EvalType {
+    UNDEFINED = 0;
+    OR = 1;
+    AND = 2;
+    EQ = 3;
+    NEQ = 4;
+    LT = 5;
+    LTE = 6;
+    GT = 7;
+    GTE = 8;
+  }
+  string lhs = 1;  // used when type is COMPARISON
+  string rhs = 2;  // used when type is COMPARISON
+  EvalType operation = 3;
+  repeated EvalNode child_evals = 4;  // used when type is OR, AND
+}
+
+message Action {
+  string name = 1;
+  string description = 2;
+  string statement = 3;
+  string rollback = 4;
+  // LINT.ThenChange(//depot/google3/cloud/partners/sap/sapagent/script/hanainsights/preprocessor/generate_go_from_rule_json.go)
+}
