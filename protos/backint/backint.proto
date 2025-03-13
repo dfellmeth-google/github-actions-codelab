@@ -18,9 +18,9 @@ syntax = "proto3";
 package sapagent.protos.backint;
 
 import "google/protobuf/wrappers.proto";
-import "storage/datapol/annotations/proto/semantic_annotations.proto";
 
-option go_package = "./backint";
+
+option go_package = "github.com/GoogleCloudPlatform/sapagent/protos/backint";
 
 message BackintConfiguration {
   string bucket = 1;
@@ -28,7 +28,7 @@ message BackintConfiguration {
   int64 parallel_streams = 3;
   int64 threads = 4;
   int64 buffer_size_mb = 5;
-  string encryption_key = 6 [(datapol.semantic_type) = ST_SECURITY_KEY];
+  string encryption_key = 6 ;
   bool compress = 7;
   string kms_key = 8;
   string service_account_key = 9;
