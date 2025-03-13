@@ -6,7 +6,7 @@ name: go-build-protos
 
 on:
   push:
-    branches: [ "lint-workflow" ]
+    branches: [ "main" ]
     paths:
       - 'protos/**.proto'
 
